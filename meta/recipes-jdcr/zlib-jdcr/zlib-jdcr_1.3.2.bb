@@ -69,3 +69,18 @@ do_install() {
 	oe_runmake DESTDIR=${D} install
 }
 # ${D} would be populated. 
+
+#----------------------------------------------------------------------#
+#   ptest part 
+#----------------------------------------------------------------------#
+
+
+inherit ptest
+
+# ${PN}-ptest package is dependent upon make. 
+RDEPENDS:${PN}-ptest += "make"
+
+# hook by ptest 
+do_install_ptest() {
+  install ${B}/examplesh ${D}${PTEST_PATH}
+}

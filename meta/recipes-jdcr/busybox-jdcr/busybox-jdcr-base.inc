@@ -32,11 +32,9 @@ def features_to_busybox_settings(d):
 
 def features_to_busybox_conf(d):
     cnf, rem = features_to_busybox_settings(d)
-    bb.note("JDCR :: cnf list : {}", cnf);
     return cnf
 def features_to_busybox_del(d):
     cnf, rem = features_to_busybox_settings(d)
-    bb.note("JDCR :: rem list : {}", rem);
     return rem
 
 configmangle = '/CONFIG_EXTRA_CFLAGS/d; \
@@ -225,3 +223,118 @@ do_compile(){
 	cp include/autoconf.h.orig include/autoconf.h
 
 }
+
+####################################################################################################
+
+do_install() {
+
+  # in .link files, replace ^/bin/ with BASE_BINDIR
+  sed -i "s:^/bin/:BASE_BINDIR/:" busybox.links*
+	sed -i "s:^/sbin/:BASE_SBINDIR/:" busybox.links*
+	sed -i "s:^/usr/bin/:BINDIR/:" busybox.links*
+	sed -i "s:^/usr/sbin/:SBINDIR/:" busybox.links*
+
+	# Move arch/link to BINDIR to match coreutils
+	sed -i "s:^BASE_BINDIR/arch:BINDIR/arch:" busybox.links*
+	sed -i "s:^BASE_BINDIR/link:BINDIR/link:" busybox.links*
+  
+	sed -i "s:^BASE_BINDIR/:${base_bindir}/:" busybox.links*
+	sed -i "s:^BASE_SBINDIR/:${base_sbindir}/:" busybox.links*
+	sed -i "s:^BINDIR/:${bindir}/:" busybox.links*
+	sed -i "s:^SBINDIR/:${sbindir}/:" busybox.links*
+
+  # creates the directory /etc/init.d under ${D}
+  install -d ${D}${sysconfdir}/init.d
+
+  if ! grep -q "CONFIG_FEATURE_INDIVIDUAL=y" ${B}/.config; then
+    
+    # create directory base_bindir under ${D}
+    install -d ${D}${base_bindir}
+    if [ "${BUSYBOX_SPLIT_SUID}" = "1" ]; then
+
+      bbnote "\"BUSYBOX_SPLIT_SUIT\" == 1"
+
+      # install the binaries. and also links in /etc folder. 
+			install -m 4755 ${B}/busybox.suid ${D}${base_bindir}
+			install -m 0755 ${B}/busybox.nosuid ${D}${base_bindir}
+			install -m 0644 ${S}/busybox.links.suid ${D}${sysconfdir}
+			install -m 0644 ${S}/busybox.links.nosuid ${D}${sysconfdir}
+			
+      if grep -q "CONFIG_SH_IS_ASH=y" ${B}/.config; then
+				ln -sf busybox.nosuid ${D}${base_bindir}/sh
+			fi
+			
+      # Keep a default busybox for people who want to invoke busybox directly.
+			# This is also useful for the on device upgrade. Because we want
+			# to use the busybox command in postinst.
+			ln -sf busybox.nosuid ${D}${base_bindir}/busybox
+
+    else
+      bbnote "\"BUSYBOX_SPLIT_SUIT\" != 1"
+
+      # as splitting is disabled, we look, which variant we want to load. 
+      # suid or nosuid. and according to it, we install in bindir. 
+      if grep -q "CONFIG_FEATURE_SUID=y" ${B}/.config; then
+				install -m 4755 ${B}/busybox ${D}${base_bindir}
+			else
+				install -m 0755 ${B}/busybox ${D}${base_bindir}
+			fi
+
+			install -m 0644 ${S}/busybox.links ${D}${sysconfdir}
+			if grep -q "CONFIG_SH_IS_ASH=y" ${B}/.config; then
+				ln -sf busybox ${D}${base_bindir}/sh
+			fi
+			ln -sf busybox ${D}${base_bindir}/busybox.nosuid
+    fi
+  else
+    bbnote "CONFIG_FEATURE_INDIVIDUAL != y"
+    # Not in normal flow. still needs to be come back to. 
+    # TODO : come back to this. flow later. 
+  fi
+}
+
+####################################################################################################
+
+inherit update-alternatives
+ALTERNATIVE_PRIORITY = "50"
+do_package:prepend(){
+  
+    dvar = d.getVar('D')
+    pn = d.getVar('PN')
+    def set_alternative_variables (link, target): 
+      links = d.expand (link)
+      target = d.expand (target)
+      f = open('%s%s' % (dvar, links), 'r')
+      
+      for alt_link_name in f:
+        alt_link_name = alt_link_name.strip()
+        alt_name = os.path.basename(alt_link_name)
+
+        # below part is there to match coreutils. 
+        if alt_name == '[':
+                alt_name = 'lbracket'
+        if alt_name == 'klogd' or alt_name == 'syslogd':
+            d.appendVar('ALTERNATIVE:%s-syslog' % (pn), ' ' + alt_name)
+        else:
+            # normal flow for most of stuff.
+            # will append the command name like ls, cat in ALTERNATIVE:busybox
+            d.appendVar('ALTERNATIVE:%s' % (pn), ' ' + alt_name)
+        
+        # add new variable in yocto datastore, ALTERNATIVE_LINK_NAME[ls] = {path to ls}
+        d.setVarFlag('ALTERNATIVE_LINK_NAME', alt_name, alt_link_name)
+        bb.note(f"ALTERNATIVE_LINK_NAME[{alt_name}] : {alt_link_name}")
+        if os.path.exists('%s%s' % (dvar, target)):
+            d.setVarFlag('ALTERNATIVE_TARGET', alt_name, target)
+            bb.note(f"ALTERNATIVE_TARGET[{alt_name}] : {d.getVarFlag('ALTERNATIVE_TARGET', alt_name)}")
+       
+      f.close()
+      bb.note(f"ALTERNATIVE:{pn} : {d.getVar('ALTERNATIVE:' + pn)}")
+      return
+    if os.path.exists('%s/etc/busybox.links' % (dvar)):
+        set_alternative_variables("${sysconfdir}/busybox.links", "${base_bindir}/busybox")
+    else:
+        set_alternative_variables("${sysconfdir}/busybox.links.nosuid", "${base_bindir}/busybox.nosuid")
+        set_alternative_variables("${sysconfdir}/busybox.links.suid", "${base_bindir}/busybox.suid")
+      
+}
+

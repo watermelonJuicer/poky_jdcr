@@ -39,7 +39,11 @@ def features_to_busybox_del(d):
 
 configmangle = '/CONFIG_EXTRA_CFLAGS/d; \
 		'
+
+# List of features, with their string as "feature=y"
 OE_FEATURES := "${@features_to_busybox_conf(d)}"
+
+# list of features, with string "feature="
 OE_DEL      := "${@features_to_busybox_del(d)}"
 DO_IPv4 := "${@bb.utils.contains('DISTRO_FEATURES', 'ipv4', 1, 0, d)}"
 DO_IPv6 := "${@bb.utils.contains('DISTRO_FEATURES', 'ipv6', 1, 0, d)}"
@@ -338,3 +342,33 @@ do_package:prepend(){
       
 }
 
+# find the backup folder and fillup global variable with the folder location
+pkg_postinst:${PN}:prepend () {
+        # Need path to saved utils, but they may have be removed on upgrade of busybox
+        # Only use shell to get paths. Also capture if busybox was saved.
+        BUSYBOX=""
+        if [ "x$D" = "x" ] ; then 
+           for busybox_rmdir in /tmp/busyboxrm-*; do
+               if [ "$busybox_rmdir" != '/tmp/busyboxrm-*' ] ; then
+                  export PATH=$busybox_rmdir:$PATH
+                  if [ -e $busybox_rmdir/busybox* ] ; then
+                    BUSYBOX="$busybox_rmdir/busybox*"
+                  fi
+               fi
+           done
+        fi
+}
+
+
+# backup folder and delete it. 
+# first do update-alternative, to remove files
+# then remove backup folder. 
+pkg_postinst:${PN}:append () {
+        # If busybox exists in the remove directory it is because it was the only shell left.
+        if [ "x$D" = "x" ] ; then
+           if [ "x$BUSYBOX" != "x" ] ; then
+              update-alternatives --remove sh $BUSYBOX
+              rm -f $BUSYBOX
+           fi
+        fi
+} 

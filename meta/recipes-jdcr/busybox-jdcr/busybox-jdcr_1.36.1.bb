@@ -88,6 +88,7 @@ SRC_URI:append = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarba
            file://CVE-2026-29004-02.patch \
            file://CVE-2026-38754.patch \
            file://CVE-2024-58251.patch \
+           file://0001-JDCR-helloworld.patch \
            "
 
 SRC_URI[tarball.sha256sum] = "b8cc24c9574d809e7279c3be349795c5d5ceb6fdf19ca709f80cde50e47de314"

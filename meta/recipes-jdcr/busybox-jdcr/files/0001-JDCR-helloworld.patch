@@ -1,0 +1,60 @@
+From ef1ebcd701f98e7853d1687b9962885678a6499f Mon Sep 17 00:00:00 2001
+From: Dipesh Patil <dipeshdoesml@gmail.com>
+Date: Wed, 11 Nov 2026 07:25:18 +0530
+Subject: [PATCH] JDCR::helloworld
+
+Upstream-Status: Inappropriate [JDCR learning assignment, not for upstream]
+
+---
+ coreutils/hellojdcr.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100644 coreutils/hellojdcr.c
+
+diff --git a/coreutils/hellojdcr.c b/coreutils/hellojdcr.c
+new file mode 100644
+index 0000000..3a4cf0e
+--- /dev/null
++++ b/coreutils/hellojdcr.c
+@@ -0,0 +1,39 @@
++/* vi: set sw=4 ts=4: */
++/*
++ * Mini whoami implementation for busybox
++ *
++ * Copyright (C) 2000  Edward Betts <edward@debian.org>.
++ *
++ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
++ */
++//config:config WHOAMI
++//config:	bool "whoami (3.2 kb)"
++//config:	default y
++//config:	help
++//config:	whoami is used to print the username of the current
++//config:	user id (same as id -un).
++
++//applet:IF_WHOAMI(APPLET_NOFORK(whoami, whoami, BB_DIR_USR_BIN, BB_SUID_DROP, whoami))
++
++//kbuild:lib-$(CONFIG_WHOAMI) += whoami.o
++
++/* BB_AUDIT SUSv3 N/A -- Matches GNU behavior. */
++
++//usage:#define whoami_trivial_usage
++//usage:       ""
++//usage:#define whoami_full_usage "\n\n"
++//usage:       "Print the user name associated with the current effective user id"
++
++#include "libbb.h"
++
++int whoami_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
++int whoami_main(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
++{
++	if (argv[1])
++		bb_show_usage();
++    char tmparr[] = "HELLO WORLD :: JDCR\0";
++	/* Will complain and die if username not found */
++	puts(tmparr);
++
++	return fflush_all();
++}
+-- 
+2.43.0
+

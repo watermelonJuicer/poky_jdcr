@@ -1,6 +1,7 @@
 # Goal is to write basic skeletal busybox file first and then 
 # understand as we go. 
 require busybox-jdcr-base.inc
+require busybox-jdcr-packages.inc
 
 ####### 
 # LICENSE AND STUFF 

@@ -3,7 +3,7 @@ inherit cml1 systemd
 # kern-tools-native provides merge_config.sh used in do_configure
 # virtual/crypt provides libcrypt for login/passwd applets
 DEPENDS += "kern-tools-native virtual/crypt"
-EXTRA_PACKAGE_TO_BUILD = "httpd"
+EXTRA_PACKAGE_TO_BUILD = "syslog"
 
 ####################################################################################################
 # #########                       do_configure part 
@@ -31,6 +31,7 @@ def features_to_busybox_settings(d):
     busybox_cfg(bb.utils.contains_any('DISTRO_FEATURES', 'bluetooth wifi', True, False, d), 'CONFIG_RFKILL', cnf, rem)
     busybox_cfg(bb.utils.contains_any('DISTRO_FEATURES', 'HELLOJDCR_FEATURE', True, False, d), 'CONFIG_HELLOJDCR', cnf, rem)
     busybox_cfg(bb.utils.contains_any('EXTRA_PACKAGE_TO_BUILD', 'httpd', True, False, d), 'CONFIG_HTTPD', cnf, rem)
+    busybox_cfg(bb.utils.contains_any('EXTRA_PACKAGE_TO_BUILD', 'syslog', True, False, d), 'CONFIG_SYSLOGD', cnf, rem)
     return "\n".join(cnf), "\n".join(rem)
 
 def features_to_busybox_conf(d):

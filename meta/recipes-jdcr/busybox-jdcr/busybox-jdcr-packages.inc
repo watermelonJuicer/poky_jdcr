@@ -39,7 +39,7 @@ SYSTEMD_PACKAGES = "${PN}-syslog"
 SYSTEMD_SERVICE:${PN}-syslog = "${@bb.utils.contains('SRC_URI', 'file://syslog.cfg', 'busybox-syslog.service', '', d)}"
 
 # syslog variant dependent on busybox
-RDEPENDS:${PN}-syslog = "busybox"
+RDEPENDS:${PN}-syslog = "busybox-jdcr"
 
 # configuration files. 
 CONFFILES:${PN}-syslog = "${sysconfdir}/syslog-startup.conf"

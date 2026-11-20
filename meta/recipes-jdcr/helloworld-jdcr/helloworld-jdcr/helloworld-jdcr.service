@@ -1,0 +1,10 @@
+[Unit]
+Description="HelloWorld project Iteration 1"
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/helloworld-jdcr /tmp/hello.txt
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

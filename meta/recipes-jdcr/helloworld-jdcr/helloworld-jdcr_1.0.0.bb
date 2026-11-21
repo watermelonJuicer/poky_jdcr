@@ -1,8 +1,10 @@
 SUMMARY = "Prints HelloWorld every 5 seconds"
 DESCRIPTION = "Testing purpose only"
-LICENSE = "GPL-2.0-only"
+LICENSE = "CLOSED"
 
-SRC_URI = "file://helloworld-jdcr.sh"
+SRC_URI = "file://helloworld-jdcr.sh \ 
+          file://helloworld-jdcr.service \
+          "
 
 S="${WORKDIR}"
 do_configure () {
@@ -12,17 +14,19 @@ do_compile() {
   echo "do_compile :: nothing to do"
 }
 
-inherit systemd
 RDEPENDS:{PN}="busybox-jdcr"
 
 inherit systemd
 
 SYSTEMD_PACKAGES="${PN}"
-SYSTEMD_SERVICE="helloworld-jdcr.service"
+SYSTEMD_SERVICE:${PN}="helloworld-jdcr.service"
 
 do_install() {
+  # installing the binary
   install -d ${D}${bindir}
-  install -m 0755 ${WORKDIR}/helloworld-jdcr.sh ${D}${bindir}
+  install -m 0755 ${WORKDIR}/helloworld-jdcr.sh ${D}${bindir}/helloworld-jdcr
 
-  install -d {D}${}
+  # installing the .service file
+  install -d ${D}${systemd_system_unitdir}
+  install -m 0644 ${S}/helloworld-jdcr.service ${D}${systemd_system_unitdir}
 }

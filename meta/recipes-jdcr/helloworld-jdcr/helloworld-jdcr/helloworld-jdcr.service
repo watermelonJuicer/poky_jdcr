@@ -3,7 +3,8 @@ Description="HelloWorld project Iteration 1"
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/helloworld-jdcr /tmp/hello.txt
+ExecStart=@SBINDIR@/helloworld-jdcr
+EnvironmentFile=@SYSCONFDIR@/default/helloworld-jdcr/helloworld-jdcr
 Restart=always
 
 [Install]

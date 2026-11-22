@@ -4,6 +4,7 @@ LICENSE = "CLOSED"
 
 SRC_URI = "file://helloworld-jdcr.sh \ 
           file://helloworld-jdcr.service \
+          file://helloworld-jdcr \
           "
 
 S="${WORKDIR}"
@@ -29,4 +30,11 @@ do_install() {
   # installing the .service file
   install -d ${D}${systemd_system_unitdir}
   install -m 0644 ${S}/helloworld-jdcr.service ${D}${systemd_system_unitdir}
+
+  # install the environment file. 
+  install -d ${D}${sysconfdir}/default/helloworld-jdcr
+  install -m 0644 ${S}/helloworld-jdcr ${D}${sysconfdir}/default/helloworld-jdcr
+
+  # renaming the default in .service files. 
+  sed -i -e 's,@SBINDIR@,${bindir},g' -e 's,@SYSCONFDIR@,${sysconfdir},g' ${D}${systemd_system_unitdir}/helloworld-jdcr.service
 }
